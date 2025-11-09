@@ -5,10 +5,11 @@ class InvestTinkoff::V2::Client < InvestTinkoff::ClientBase
 
   TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 
-  def initialize token:, logger: nil
+  def initialize token:, logger: nil, sandbox: false
     super(
       token: token,
-      logger: logger
+      logger: logger,
+      sandbox: sandbox
     )
   end
 

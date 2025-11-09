@@ -820,3 +820,77 @@ clear
 ```ruby
 remove
 ```
+
+## gRPC API (быстрее и поддерживает стриминг)
+
+### Требования
+
+- Ruby 3.4.5 или выше
+- Установите зависимости:
+  ```sh
+  gem install grpc google-protobuf grpc-tools
+  ```
+- Сгенерируйте Ruby-клиенты из proto-файлов:
+  ```sh
+  rake proto:generate
+  ```
+- Получите рабочий токен Tinkoff Invest API и задайте его:
+  ```sh
+  export TINKOFF_TOKEN=ваш_токен
+  ```
+
+### Основные gRPC-сервисы
+
+- `grpc_users` — работа с пользователем и счетами
+- `grpc_operations` — операции и портфель
+- `grpc_market_data` — рыночные данные (стакан, котировки)
+- `grpc_market_data_stream` — стриминг рыночных данных
+
+### Примеры использования
+
+```ruby
+# Создание клиента
+client = InvestTinkoff::V2::Client.new token: ENV["TINKOFF_TOKEN"]
+
+# Получение счетов пользователя
+accounts = client.grpc_users.accounts # => GetAccountsResponse
+
+# Получение портфеля по account_id
+portfolio = client.grpc_operations.portfolio account_id: accounts.accounts.first.account_id # => PortfolioResponse
+
+# Получение стакана по FIGI
+order_book = client.grpc_market_data.order_book instrument_id: "BBG000B9XRY4", depth: 10 # => GetOrderBookResponse
+
+# Получение стриминга стакана
+stream = client.grpc_market_data_stream.subscribe_order_books(figi: "BBG000B9XRY4", depth: 10)
+stream.each do |response|
+  puts response.orderbook
+end
+```
+
+### Обработка ошибок
+
+Все ошибки gRPC преобразуются в кастомные исключения:
+
+```ruby
+begin
+  client.grpc_users.accounts
+rescue InvestTinkoff::GRPC::Error => e
+  puts "Ошибка: #{e.message}"
+end
+```
+
+### Sandbox
+
+Для работы с песочницей используйте параметр `sandbox: true`:
+
+```ruby
+client = InvestTinkoff::V2::Client.new token: ENV["TINKOFF_TOKEN"], sandbox: true
+```
+
+### Интеграционные тесты
+
+Примеры интеграционных тестов для gRPC-сервисов смотрите в папке:
+```
+spec/invest_tinkoff/grpc/
+```
