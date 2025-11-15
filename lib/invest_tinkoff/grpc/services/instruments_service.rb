@@ -1,3 +1,4 @@
+require_relative '../../../instruments_pb'
 require_relative '../../../instruments_services_pb'
 
 module InvestTinkoff
@@ -27,6 +28,27 @@ module InvestTinkoff
           id: ticker
         )
         @stub.share_by(req, metadata: @invoker.channel.metadata)
+      rescue ::GRPC::BadStatus => e
+        raise InvestTinkoff::GRPC::ErrorMapper.map(e)
+      end
+
+      # Возвращает список акций (Shares) через gRPC
+      def shares(instrument_status: nil)
+        status = instrument_status ||
+                 (::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentStatus::INSTRUMENT_STATUS_BASE rescue 1)
+
+        req_klass =
+          if defined?(::Tinkoff::Public::Invest::Api::Contract::V1::SharesRequest)
+            ::Tinkoff::Public::Invest::Api::Contract::V1::SharesRequest
+          elsif defined?(::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentsRequest)
+            ::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentsRequest
+          else
+            nil
+          end
+        raise NameError, 'SharesRequest message not available in loaded protos' unless req_klass
+
+        req = req_klass.new(instrument_status: status)
+        @stub.shares(req, metadata: @invoker.channel.metadata)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
