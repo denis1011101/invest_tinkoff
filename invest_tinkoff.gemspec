@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/denis1011101/invest_tinkoff'
   s.license     = 'MIT'
 
-  s.required_ruby_version = '>= 3.4.6'
+  s.required_ruby_version = '>= 3.4.7'
 
   s.add_dependency 'google-protobuf', '~> 4.31', '>= 4.31.1'
   s.add_dependency 'grpc', '~> 1.74', '>= 1.74.1'
