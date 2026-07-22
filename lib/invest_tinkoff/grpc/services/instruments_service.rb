@@ -32,6 +32,22 @@ module InvestTinkoff
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
 
+      # Основная информация об инструменте (любого типа) через GetInstrumentBy.
+      # id_type: :figi | :uid | :ticker | :position_uid (или готовый enum InstrumentIdType).
+      # При id_type == :ticker обязателен class_code.
+      # Возвращает Instrument (resp.instrument) либо nil, если инструмент не найден.
+      def get_instrument_by(id_type, id, class_code: nil)
+        req = ::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentRequest.new(
+          id_type: instrument_id_type(id_type),
+          class_code: class_code,
+          id: id.to_s
+        )
+        resp = @stub.get_instrument_by(req, metadata: @invoker.channel.metadata)
+        resp.respond_to?(:instrument) ? resp.instrument : resp
+      rescue ::GRPC::BadStatus => e
+        raise InvestTinkoff::GRPC::ErrorMapper.map(e)
+      end
+
       # Возвращает список акций (Shares) через gRPC
       def shares(instrument_status: nil)
         status = instrument_status ||
@@ -51,6 +67,22 @@ module InvestTinkoff
         @stub.shares(req, metadata: @invoker.channel.metadata)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
+      end
+
+      private
+
+      # Приводит символ/enum к значению InstrumentIdType.
+      def instrument_id_type(id_type)
+        return id_type unless id_type.is_a?(Symbol) || id_type.is_a?(String)
+
+        enum = ::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentIdType
+        case id_type.to_s.downcase
+        when 'figi' then enum::INSTRUMENT_ID_TYPE_FIGI
+        when 'uid' then enum::INSTRUMENT_ID_TYPE_UID
+        when 'ticker' then enum::INSTRUMENT_ID_TYPE_TICKER
+        when 'position_uid' then enum::INSTRUMENT_ID_TYPE_POSITION_UID
+        else enum::INSTRUMENT_ID_UNSPECIFIED
+        end
       end
     end
   end
