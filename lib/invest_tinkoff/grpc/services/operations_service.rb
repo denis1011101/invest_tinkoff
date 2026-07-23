@@ -20,11 +20,10 @@ module InvestTinkoff
       end
 
       # GetOperationsByCursor — операции по счёту за период, с пагинацией
-      def operations_by_cursor(account_id:, from: nil, to: nil, instrument_id: nil, cursor: nil, limit: nil)
+      def operations_by_cursor(account_id:, from: nil, to: nil, cursor: nil, limit: nil)
         attrs = { account_id: account_id }
         attrs[:from] = to_timestamp(from) if from
         attrs[:to] = to_timestamp(to) if to
-        attrs[:instrument_id] = instrument_id if instrument_id
         attrs[:cursor] = cursor if cursor
         attrs[:limit] = limit if limit
         request = Tinkoff::Public::Invest::Api::Contract::V1::GetOperationsByCursorRequest.new(**attrs)
