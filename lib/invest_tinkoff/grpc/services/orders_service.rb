@@ -25,6 +25,14 @@ module InvestTinkoff
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
 
+      # GetOrders — активные заявки по счёту
+      def get_orders(account_id:)
+        req = ::Tinkoff::Public::Invest::Api::Contract::V1::GetOrdersRequest.new(account_id: account_id)
+        @stub.get_orders(req, metadata: @invoker.channel.metadata)
+      rescue ::GRPC::BadStatus => e
+        raise InvestTinkoff::GRPC::ErrorMapper.map(e)
+      end
+
       private
 
       def to_q(value)
