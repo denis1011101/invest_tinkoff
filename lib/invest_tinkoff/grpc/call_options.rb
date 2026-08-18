@@ -23,12 +23,17 @@ module InvestTinkoff
       #
       # Отключение возможно только явным INVEST_TINKOFF_GRPC_TIMEOUT=0; мусор в
       # переменной откатывается к дефолту, а не снимает защиту молча.
+      #
+      # finite? обязателен: Float('1e400', exception: false) отдаёт не nil, а
+      # Infinity, и тогда `now + timeout` роняет FloatDomainError на каждом
+      # вызове — то есть опечатка в переменной убивала бы клиент целиком вместо
+      # отката к дефолту. Строковые 'Infinity'/'NaN' Float и так не принимает.
       def timeout_seconds(env = ENV)
         raw = env[ENV_KEY].to_s.strip
         return DEFAULT_TIMEOUT_SECONDS if raw.empty?
 
         value = Float(raw, exception: false)
-        return DEFAULT_TIMEOUT_SECONDS if value.nil?
+        return DEFAULT_TIMEOUT_SECONDS if value.nil? || !value.finite?
         return nil if value <= 0
 
         value

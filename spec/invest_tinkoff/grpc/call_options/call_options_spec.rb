@@ -25,6 +25,18 @@ RSpec.describe InvestTinkoff::GRPC::CallOptions do
       expect(described_class.timeout_seconds({ 'INVEST_TINKOFF_GRPC_TIMEOUT' => 'soon' }))
         .to eq(described_class::DEFAULT_TIMEOUT_SECONDS)
     end
+
+    # Float('1e400') это не nil, а Infinity: без проверки finite? такой дедлайн
+    # ронял бы FloatDomainError на каждом вызове, то есть весь клиент.
+    it 'falls back to the default on an overflowing value instead of building an infinite deadline' do
+      %w[1e400 1e100000 -1e400].each do |raw|
+        expect(described_class.timeout_seconds({ 'INVEST_TINKOFF_GRPC_TIMEOUT' => raw }))
+          .to eq(described_class::DEFAULT_TIMEOUT_SECONDS)
+      end
+
+      expect { described_class.build(channel, timeout: described_class.timeout_seconds({ 'INVEST_TINKOFF_GRPC_TIMEOUT' => '1e400' })) }
+        .not_to raise_error
+    end
   end
 
   describe '.build' do
