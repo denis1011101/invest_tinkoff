@@ -9,7 +9,7 @@ gem install invest_tinkoff
 ```
 
 ## Requirements
-- Ruby 2.3.0 or higher
+- Ruby 4.0.6 or higher
 
 ## gRPC deadlines
 
