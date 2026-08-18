@@ -1,9 +1,12 @@
 require_relative '../../../instruments_pb'
 require_relative '../../../instruments_services_pb'
+require_relative '../call_options'
 
 module InvestTinkoff
   module GRPC
     class InstrumentsService
+      include InvestTinkoff::GRPC::CallOptions::Support
+
       def initialize(invoker:)
         @invoker = invoker
         @stub = ::Tinkoff::Public::Invest::Api::Contract::V1::InstrumentsService::Stub.new(
@@ -15,7 +18,7 @@ module InvestTinkoff
       # Использует FindInstrument gRPC метод.
       def find_instrument(query:)
         req = ::Tinkoff::Public::Invest::Api::Contract::V1::FindInstrumentRequest.new(query: query)
-        @stub.find_instrument(req, metadata: @invoker.channel.metadata)
+        @stub.find_instrument(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
@@ -27,7 +30,7 @@ module InvestTinkoff
           class_code: class_code,
           id: ticker
         )
-        @stub.share_by(req, metadata: @invoker.channel.metadata)
+        @stub.share_by(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
@@ -48,7 +51,7 @@ module InvestTinkoff
           class_code: class_code,
           id: id.to_s
         )
-        resp = @stub.get_instrument_by(req, metadata: @invoker.channel.metadata)
+        resp = @stub.get_instrument_by(req, **call_options)
         resp.respond_to?(:instrument) ? resp.instrument : resp
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
@@ -58,7 +61,7 @@ module InvestTinkoff
       # Возвращает массив инструментов (resp.instruments) с полями uid/figi/ticker/name.
       def indicatives
         req = ::Tinkoff::Public::Invest::Api::Contract::V1::IndicativesRequest.new
-        resp = @stub.indicatives(req, metadata: @invoker.channel.metadata)
+        resp = @stub.indicatives(req, **call_options)
         resp.respond_to?(:instruments) ? resp.instruments : []
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
@@ -80,7 +83,7 @@ module InvestTinkoff
         raise NameError, 'SharesRequest message not available in loaded protos' unless req_klass
 
         req = req_klass.new(instrument_status: status)
-        @stub.shares(req, metadata: @invoker.channel.metadata)
+        @stub.shares(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end

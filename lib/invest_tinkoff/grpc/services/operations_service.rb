@@ -1,8 +1,11 @@
 require_relative '../../../operations_services_pb'
+require_relative '../call_options'
 
 module InvestTinkoff
   module GRPC
     class OperationsService
+      include InvestTinkoff::GRPC::CallOptions::Support
+
       def initialize(invoker:)
         @invoker = invoker
         @stub = Tinkoff::Public::Invest::Api::Contract::V1::OperationsService::Stub.new(
@@ -14,7 +17,7 @@ module InvestTinkoff
 
       def portfolio(account_id:)
         request = Tinkoff::Public::Invest::Api::Contract::V1::PortfolioRequest.new(account_id: account_id)
-        @stub.get_portfolio(request, metadata: @invoker.channel.metadata)
+        @stub.get_portfolio(request, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
@@ -27,7 +30,7 @@ module InvestTinkoff
         attrs[:cursor] = cursor if cursor
         attrs[:limit] = limit if limit
         request = Tinkoff::Public::Invest::Api::Contract::V1::GetOperationsByCursorRequest.new(**attrs)
-        @stub.get_operations_by_cursor(request, metadata: @invoker.channel.metadata)
+        @stub.get_operations_by_cursor(request, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
