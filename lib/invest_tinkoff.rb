@@ -39,6 +39,7 @@ module InvestTinkoff
     require_relative 'invest_tinkoff/grpc/channel'
     require_relative 'invest_tinkoff/grpc/invoker'
     require_relative 'invest_tinkoff/grpc/errors'
+    require_relative 'invest_tinkoff/grpc/call_options'
     require_relative 'invest_tinkoff/grpc/services/users_service'
     require_relative 'invest_tinkoff/grpc/services/operations_service'
     require_relative 'invest_tinkoff/grpc/services/marketdata_service'

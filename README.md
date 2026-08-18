@@ -11,6 +11,22 @@ gem install invest_tinkoff
 ## Requirements
 - Ruby 2.3.0 or higher
 
+## gRPC deadlines
+
+Каждый gRPC-вызов уходит с абсолютным дедлайном: без него RPC может висеть
+бесконечно — оборванный канал до брокера выглядит как живой ESTABLISHED-сокет,
+в который уже никогда ничего не придёт.
+
+По умолчанию 30 секунд, настраивается переменной окружения:
+
+```
+INVEST_TINKOFF_GRPC_TIMEOUT=30   # секунды; 0 полностью отключает дедлайн
+```
+
+Мусор в переменной откатывается к дефолту, а не снимает защиту молча. Вызов,
+не уложившийся в дедлайн, приходит как `InvestTinkoff::GRPC::DeadlineExceeded`
+(потомок `InvestTinkoff::GRPC::Error`).
+
 ## Docs
 
 [RubyDoc.info](https://www.rubydoc.info/gems/invest_tinkoff/0.9.6)

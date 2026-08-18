@@ -1,8 +1,11 @@
 require_relative '../../../orders_services_pb'
+require_relative '../call_options'
 
 module InvestTinkoff
   module GRPC
     class OrdersService
+      include InvestTinkoff::GRPC::CallOptions::Support
+
       def initialize(invoker:)
         @invoker = invoker
         @stub = ::Tinkoff::Public::Invest::Api::Contract::V1::OrdersService::Stub.new(
@@ -20,7 +23,7 @@ module InvestTinkoff
           order_type: order_type,
           order_id: order_id
         )
-        @stub.post_order(req, metadata: @invoker.channel.metadata)
+        @stub.post_order(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
@@ -28,7 +31,7 @@ module InvestTinkoff
       # GetOrders — активные заявки по счёту
       def get_orders(account_id:)
         req = ::Tinkoff::Public::Invest::Api::Contract::V1::GetOrdersRequest.new(account_id: account_id)
-        @stub.get_orders(req, metadata: @invoker.channel.metadata)
+        @stub.get_orders(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end

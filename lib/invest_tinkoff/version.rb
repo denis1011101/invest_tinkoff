@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module InvestTinkoff
-  VERSION = '0.9.6.8'
+  VERSION = '0.9.7.0'
 end

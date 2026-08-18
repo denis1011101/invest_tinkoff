@@ -1,9 +1,12 @@
 require_relative '../../../marketdata_services_pb'
 require 'google/protobuf/timestamp_pb'
+require_relative '../call_options'
 
 module InvestTinkoff
   module GRPC
     class MarketDataService
+      include InvestTinkoff::GRPC::CallOptions::Support
+
       def initialize(invoker:)
         @invoker = invoker
         @stub = ::Tinkoff::Public::Invest::Api::Contract::V1::MarketDataService::Stub.new(
@@ -13,7 +16,7 @@ module InvestTinkoff
 
       def last_prices(figis:)
         req = ::Tinkoff::Public::Invest::Api::Contract::V1::GetLastPricesRequest.new(figi: figis)
-        @stub.get_last_prices(req, metadata: @invoker.channel.metadata)
+        @stub.get_last_prices(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
@@ -27,7 +30,7 @@ module InvestTinkoff
         attrs[:figi] = figi if figi
         attrs[:instrument_id] = instrument_id if instrument_id
         req = ::Tinkoff::Public::Invest::Api::Contract::V1::GetCandlesRequest.new(**attrs)
-        @stub.get_candles(req, metadata: @invoker.channel.metadata)
+        @stub.get_candles(req, **call_options)
       rescue ::GRPC::BadStatus => e
         raise InvestTinkoff::GRPC::ErrorMapper.map(e)
       end
